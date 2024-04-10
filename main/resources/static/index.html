@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <title>博客/评论接口测试</title>
+  <script src="./js/vue.global.js"></script>
+  <script src="./js/utils.js"></script>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+  <div id="app">
+    <h5>创建博客</h5>
+    <div class="api-info">
+      <span class="method post">POST</span>
+      <span class="url">/api/blogs</span>
+    </div>
+    <div class="input-group">
+      <label for="title">博客标题</label>
+      <input class="input" type="text" v-model="title" id="title" placeholder="输入标题">
+    </div>
+    <div class="input-group">
+      <label for="content">博客内容</label>
+      <input class="input" type="text" v-model="content" id="content" placeholder="输入博客内容">
+    </div>
+    <div class="input-group">
+      <button @click="createBlog">发送请求</button>
+    </div>
+    <div>
+      <pre v-html="createBlogResult" v-show="createBlogResult"></pre>
+    </div>
+    <hr>
+    <h5>博客列表</h5>
+    <div class="api-info">
+      <span class="method get">GET</span>
+      <span class="url">/api/blogs</span>
+    </div>
+    <div class="input-group">
+      <button @click="queryAllBlogs">发送请求</button>
+    </div>
+    <div>
+      <pre v-html="blogList" v-show="blogList"></pre>
+    </div>
+    <hr>
+    <h5>查询博客</h5>
+    <div class="api-info">
+      <span class="method get">GET</span>
+      <span class="url">/api/blogs/{id}</span>
+    </div>
+    <div class="input-group">
+      <label for="blogID">博客 ID</label>
+      <input class="input" type="number" v-model="blogID" id="blogID" placeholder="输入博客 ID">
+    </div>
+    <div class="input-group">
+      <button @click="queryBlogById">确认提交</button>
+    </div>
+    <div>
+      <pre v-html="blog" v-show="blog"></pre>
+    </div>
+    <hr>
+    <h5>创建评论</h5>
+    <div class="api-info">
+      <span class="method post">POST</span>
+      <span class="url">/api/comment</span>
+    </div>
+    <div class="input-group">
+      <label for="commentedBlogID">博客 ID</label>
+      <input class="input" type="number" v-model="commentedBlogID" id="commentedBlogID" placeholder="输入被评论的博客 ID">
+    </div>
+    <div class="input-group">
+      <label for="commentAuthor">评论者</label>
+      <input class="input" type="text" v-model="commentAuthor" id="commentAuthor" placeholder="输入评论者昵称">
+    </div>
+    <div class="input-group">
+      <label for="commentContent">评论内容</label>
+      <input class="input" type="text" v-model="commentContent" id="commentContent" placeholder="输入评论内容">
+    </div>
+    <div class="input-group">
+      <button @click="createComment">发送请求</button>
+    </div>
+    <div>
+      <pre v-html="createCommentResult" v-show="createCommentResult"></pre>
+    </div>
+    <hr>
+    <h5>回复评论</h5>
+    <div class="api-info">
+      <span class="method post">POST</span>
+      <span class="url">/api/comment/{commentID}/reply</span>
+    </div>
+    <div class="input-group">
+      <label for="commentID">评论 ID</label>
+      <input class="input" type="number" v-model="commentID" id="commentID" placeholder="输入被回复的评论 ID">
+    </div>
+    <div class="input-group">
+      <label for="replyAuthor">评论者</label>
+      <input class="input" type="text" v-model="replyAuthor" id="replyAuthor" placeholder="输入回复评论者昵称">
+    </div>
+    <div class="input-group">
+      <label for="replyContent">评论内容</label>
+      <input class="input" type="text" v-model="replyContent" id="replyContent" placeholder="输入回复内容">
+    </div>
+    <div class="input-group">
+      <button @click="replyComment">发送请求</button>
+    </div>
+    <div>
+      <pre v-html="replyCommentResult" v-show="replyCommentResult"></pre>
+    </div>
+    <hr>
+  </div>
+  <script>
+    const app = Vue.createApp({
+      data() {
+        return {
+          // 博客列表
+          blogList: '',
+
+          // 待查询的博客 ID
+          blogID: '',
+          // 返回的博客信息
+          blog: '',
+
+          // 新创建的博客标题
+          title: '',
+          // 新创建的博客内容
+          content: '',
+          // 创建博客后返回的结果
+          createBlogResult: '',
+
+          // 待评论的博客 ID
+          commentedBlogID: '',
+          // 评论人
+          commentAuthor: '',
+          // 评论内容
+          commentContent: '',
+          // 创建评论后返回的结果
+          createCommentResult: '',
+
+          // 待回复的评论 ID
+          commentID: '',
+          // 回复人
+          replyAuthor: '',
+          // 回复内容
+          replyContent: '',
+          // 回复评论后返回的结果
+          replyCommentResult: '',
+        };
+      },
+      methods: {
+        async queryAllBlogs() {
+          this.blogList = await get(`/api/blogs`)
+        },
+        async queryBlogById() {
+          this.blog = await get(`/api/blogs/${this.blogID}`)
+        },
+        async createBlog() {
+          const url = `/api/blogs`
+          const data = {
+            title: this.title,
+            content: this.content
+          }
+          this.createBlogResult = await post(url, data);
+        },
+        async createComment() {
+          const url = `/api/comment?blogId=${this.commentedBlogID}`
+          const data = {
+            author: this.commentAuthor,
+            content: this.commentContent
+          }
+          this.createCommentResult = await post(url, data);
+        },
+        async replyComment() {
+          const url = `/api/comment/${this.commentID}/reply`;
+          const data = {
+            author: this.replyAuthor,
+            content: this.replyContent
+          }
+          this.replyCommentResult = await post(url, data);
+        }
+      }
+    });
+    app.mount('#app');
+  </script>
+</body>
+
+</html>
